@@ -7,14 +7,28 @@ from math import inf as infinity
 import platform
 from os import system
 from copy import deepcopy
+
+t0=time.time()
 human = -1
 computer = +1
 temp_board = []
 board= [
-		[ [1],  [0],  [1]],
-		[ [0],  [1],  [0]],
-        [ [1],  [0],  [1]]
+		[ [],  [],  [], [0], [1],  [],  [],  [],  []],
+		[ [],  [],  [], [1], [0], [1], [0], [1],  []],
+		[ [],  [], [1], [0], [1], [0], [1], [0], [1]],
+		[ [],  [], [0], [1], [0], [1], [0], [1], [0]],
+		[ [], [0], [1], [0],  [], [0], [1], [0],  []],
+		[[0], [1], [0], [1], [0], [1], [0],  [],  []],
+		[[1], [0], [1], [0], [1], [0], [1],  [],  []],
+		[ [], [1], [0], [1], [0], [1],  [],  [],  []],
+		[ [],  [],  [],  [], [1], [0],  [],  [],  []]
 	]
+counter = 0
+best_board=[]
+best_temp_board=[]
+new_temp_board=[]
+choosing_depth=2
+score = []
 # temp_board = board.copy()
 
 """balec de l'evaluation +win + game over je crois"""    
@@ -39,8 +53,11 @@ board= [
 #         return True
 #     else : 
 #         return False
-# def game_over(state):
-#     return wins(state,human) or wins(state, computer)
+def game_over(state):
+    if len(possible_moves(state))== 0:
+        return True
+    else:
+        return False
 
 def usable_cells(state):
     cells = []
@@ -78,38 +95,24 @@ def possible_moves(state):
     case is a list of dicts of all possible moves for each cell
     score is for the move score, -1 if favorable for IA, +1 favorable for human and 0 coussi coussa
     """
-    points = 0
+    
     poss_cells = []
     case = []
+    
     for a, row in enumerate(state):
         for b, col in enumerate(row):
             if 0<len(col)<5:
                 poss_cells.append([a,b])
-    # print(usable_cells(state))
-    if state == board:
-        points = 2
-    elif state == temp_board:
-        points = 1
 
-        
-    for cell in usable_cells(state):       
+    for cell in usable_cells(state):     
+          
         for  movingto in poss_cells:
             x=cell[0]
             y=cell[1]
             a=movingto[0]
             b=movingto[1]
-            if valid_move(x,y,a,b,state):
-                if state[x][y][-1]== 0:
-                    if state[a][b][-1] ==0:
-                        tempscore = points
-                    elif state[a][b][-1] ==1:
-                        tempscore = -points
-                elif state[x][y][-1]== 1:
-                    if state[a][b][-1] ==0:
-                        tempscore = +points
-                    elif state[a][b][-1] ==1:
-                        tempscore = -points
-                case.append({"from":cell, "to":movingto,"tscore": tempscore})
+            if valid_move(x,y,a,b,state):        
+                case.append({"from":cell, "to":movingto,"tscore": int})
                 
     # print(pprint.pformat(case))
     return case
@@ -135,11 +138,23 @@ def set_move(x,y,a,b,state):
     else:
         return False
 
-def profondeur(state):
-    # global temp_board
-    best = {"from":list,"to":list,"tscore":infinity}
+def profondeur(state,depth,player):
+    global best_board
+    global best_temp_board
+    if player == computer:
+        best = {"from":list,"to":list,"tscore":infinity}        # + inf because we want then a number smaller
+    else :
+        best = {"from":list,"to":list,"tscore":-infinity}
+
+    if depth == 0 or game_over(state):
+        return best
+        
     for move in possible_moves(state):
-        temp_board = deepcopy(board)
+
+        if depth ==choosing_depth:
+            temp_board = deepcopy(board)
+        else:
+            temp_board = deepcopy(best_board)
         dscore = 0
         
                 
@@ -155,14 +170,88 @@ def profondeur(state):
             dscore += degree["tscore"]
         
         move.update(tscore = dscore + move["tscore"])
-        print('board',board)
-        print("move",move)
-        print("temp",temp_board)
-        if best["tscore"]<= move["tscore"]:
-            best = best
-        elif best["tscore"]> move["tscore"]:
-            best = move
-    print("best :",best)
+        # print('board',board)
+        # print("move",move)
+        # print("temp",temp_board)
+        if player == computer:
+            if best["tscore"]> move["tscore"]:
+                best = move     #min value
+                best_temp_board = deepcopy(temp_board)
+                
+            
+        else :
+            if best["tscore"]< move["tscore"]:
+                best = move     #max value
+                best_temp_board = deepcopy(temp_board)
+        
+    set_move(best["from"][0],best["from"][1],best["to"][0],best["to"][1],best_temp_board)
+    best_board = deepcopy(best_temp_board)
+    print("move",best)
+    print("best_board",best_board)
+    # print(" moves possibles",possible_moves(best_board))
+    
+    return minimax(temp_board,depth-1,-player)
+    
+def minimax(state,depth,player):
+    global best_board
+    global temp_board
+    global new_temp_board
+    global counter
+    # global score
+    
+    if player == computer:
+        best = {"from":list,"to":list,"tscore":infinity}        # + inf because we want then a number smaller
+    else :
+        best = {"from":list,"to":list,"tscore":-infinity}
+
+    if depth == 0 or game_over(state):
+        return best
+    
+    
+
+    for move in possible_moves(state):
+        # print(move, depth)
+        x= move["from"][0]
+        y = move["from"][1]
+        a = move["to"][0]
+        b = move["to"][1]
+        
+        
+        temp_board = deepcopy(state)
+        new_state = (temp_board)
+        set_move(x,y,a,b,new_state)
+        # print ("move",depth," : ",move)
+        # print("state",depth," : ",new_state)
+        # print ("state", state)
+        # print("temp",temp_board)
+
+        counter +=1
+        
+        minimax(new_state,depth-1,-player)
+    
+    """
+    crate first a function to calculate the score in function of the numbers of 1 and 0 at the last depth
+    
+    1 == +1
+    0 == -1
+    if len(pile) == 5:
+        1 == +3
+        0 == -3
+
+    if player == computer:
+        if best["tscore"]> move["tscore"]:
+            best = move     #min value
+            best_temp_board = deepcopy(temp_board)
+            
+        
+    else :
+        if best["tscore"]< move["tscore"]:
+            best = move     #max value
+            best_temp_board = deepcopy(temp_board) 
+    """
+        
+        
+
         
         
 
@@ -202,11 +291,13 @@ def profondeur(state):
 #             # score[0],score[1] = x,y
 #         # print("best" , best)
 
-# minimax(board,2,computer)
+# minimax(board,15,computer)
 
 # possible_moves(board)
-profondeur(board)
-
+# profondeur(board)
+minimax(board,choosing_depth,human)
+print(time.time()-t0)
+print(counter)
 # # print(board)
 # set_move(1,1,2,2,player = computer)
 # # print(board)
