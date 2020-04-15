@@ -7,52 +7,30 @@ from math import inf as infinity
 import platform
 from os import system
 from copy import deepcopy
-
+"""
+all variables :
+    t0 for the time processing
+    human for human turn(used in minimax) and comp for the ai
+    temp_board is used to deepcopy the actual board without changing it
+    board is the board we'll take from the json
+    counter for the possibilities
+    depth is the depth we want to check in advance = the numbers of moves checked in advance
+"""
 t0=time.time()
 human = -1
 computer = +1
 temp_board = []
 board= [
-		[ [],  [],  [], [0], [1],  [],  [],  [],  []],
-		[ [],  [],  [], [1], [0], [1], [0], [1],  []],
-		[ [],  [], [1], [0], [1], [0], [1], [0], [1]],
-		[ [],  [], [0], [1], [0], [1], [0], [1], [0]],
-		[ [], [0], [1], [0],  [], [0], [1], [0],  []],
-		[[0], [1], [0], [1], [0], [1], [0],  [],  []],
-		[[1], [0], [1], [0], [1], [0], [1],  [],  []],
-		[ [], [1], [0], [1], [0], [1],  [],  [],  []],
-		[ [],  [],  [],  [], [1], [0],  [],  [],  []]
+		[ [1],  [0], [1]],
+        [ [0],  [1], [0]],
+        [ [1],  [0], [1]]
 	]
 counter = 0
-best_board=[]
-best_temp_board=[]
-new_temp_board=[]
-choosing_depth=2
-score = []
-# temp_board = board.copy()
+choosing_depth=3
+points = 0
 
-"""balec de l'evaluation +win + game over je crois"""    
-# def evaluate(state):
-#     """ return +1 if comp wins, -1 if human wins, 0 if draw"""
-#     if wins(state,computer):
-#         score = +1
-#     elif wins(state,human):
-#         score = -1
-#     else :
-#         score = 0
-#     return score
-# def wins(state,player):
-#     """checking the number of towers that the players have 
-#     (having the last number in list his num)
-#     """
-#     win_state=[[state[0][0]],
-#                 [state[0][1]],
-#                 [state[1][0]],
-#                 [state[1][1]]]
-#     if [player] in win_state:
-#         return True
-#     else : 
-#         return False
+
+
 def game_over(state):
     if len(possible_moves(state))== 0:
         return True
@@ -116,9 +94,6 @@ def possible_moves(state):
                 
     # print(pprint.pformat(case))
     return case
-            
-
-
 
 def set_move(x,y,a,b,state):
     """
@@ -138,166 +113,100 @@ def set_move(x,y,a,b,state):
     else:
         return False
 
-def profondeur(state,depth,player):
-    global best_board
-    global best_temp_board
-    if player == computer:
-        best = {"from":list,"to":list,"tscore":infinity}        # + inf because we want then a number smaller
-    else :
-        best = {"from":list,"to":list,"tscore":-infinity}
-
-    if depth == 0 or game_over(state):
-        return best
-        
-    for move in possible_moves(state):
-
-        if depth ==choosing_depth:
-            temp_board = deepcopy(board)
-        else:
-            temp_board = deepcopy(best_board)
-        dscore = 0
-        
-                
-        x= move["from"][0]
-        y = move["from"][1]
-        a = move["to"][0]
-        b = move["to"][1]
-        
-        
-        set_move(x,y,a,b,temp_board)
-        for degree in possible_moves(temp_board):
-            # print(degree)
-            dscore += degree["tscore"]
-        
-        move.update(tscore = dscore + move["tscore"])
-        # print('board',board)
-        # print("move",move)
-        # print("temp",temp_board)
-        if player == computer:
-            if best["tscore"]> move["tscore"]:
-                best = move     #min value
-                best_temp_board = deepcopy(temp_board)
-                
-            
-        else :
-            if best["tscore"]< move["tscore"]:
-                best = move     #max value
-                best_temp_board = deepcopy(temp_board)
-        
-    set_move(best["from"][0],best["from"][1],best["to"][0],best["to"][1],best_temp_board)
-    best_board = deepcopy(best_temp_board)
-    print("move",best)
-    print("best_board",best_board)
-    # print(" moves possibles",possible_moves(best_board))
-    
-    return minimax(temp_board,depth-1,-player)
+def eval(state):
+    """
+    param: state is the catual board that will be evaluated
+    here it's for the leaves
+    for the moment 0 is for comp and 1 for human
+    """
+    points = 0
+    for row in state: 
+        for col in row:
+            # if 0 is the color of computer and 1 for the human
+            if len(col) == 0:
+                pass
+            elif 0<len(col)<5:
+                if col[-1]==1:
+                    points -= 1
+                elif col[-1]==0:
+                    points +=1
+            elif len(col) == 5:
+                if col[-1]==1:
+                    points -= 5
+                elif col[-1]==0:
+                    points +=5
+    return points
     
 def minimax(state,depth,player):
-    global best_board
+    """
+    param: state, the board, that changes further when we iterate it in the loop
+    param: depth, it's the depth we chose outside the function and will decrease for each iteration we do
+        the starting depth is for ex 4, it's the root, and 1 is the leaves. It can't go under 1
+    param: player stands for human or computer turn, as it will maximize at comp turn and minimize at human turn
+    return : returns the best move of its children
+    """
     global temp_board
-    global new_temp_board
     global counter
-    # global score
+    global points
     
-    if player == computer:
-        best = {"from":list,"to":list,"tscore":infinity}        # + inf because we want then a number smaller
-    else :
-        best = {"from":list,"to":list,"tscore":-infinity}
 
-    if depth == 0 or game_over(state):
+    if player == computer:
+        best = {"from":list,"to":list,"tscore":-infinity}        # - inf because we want the algo to maximize for the computer
+    else :
+        best = {"from":list,"to":list,"tscore":+infinity}
+
+    if depth == 0 or game_over(state):          #when we're at the level under the leaves, leaves depth = 1
         return best
     
     
 
-    for move in possible_moves(state):
-        # print(move, depth)
+    for move in possible_moves(state):      #the loop that iterates itself when going inside it's children
         x= move["from"][0]
         y = move["from"][1]
         a = move["to"][0]
         b = move["to"][1]
         
+        temp_board = deepcopy(state)    #deepcopying a new board with a first move
+        new_state = (temp_board)        #and using this copy of board to re iterate itself and making a new board for each child
+        set_move(x,y,a,b,new_state) 
         
-        temp_board = deepcopy(state)
-        new_state = (temp_board)
-        set_move(x,y,a,b,new_state)
-        # print ("move",depth," : ",move)
-        # print("state",depth," : ",new_state)
-        # print ("state", state)
-        # print("temp",temp_board)
-
-        counter +=1
         
-        minimax(new_state,depth-1,-player)
-    
-    """
-    crate first a function to calculate the score in function of the numbers of 1 and 0 at the last depth
-    
-    1 == +1
-    0 == -1
-    if len(pile) == 5:
-        1 == +3
-        0 == -3
+        
+        if depth == 1: # if leaf
+            counter +=1
+            move["tscore"] = eval(new_state) #it calls the evaluate to put score on the leaves
 
-    if player == computer:
-        if best["tscore"]> move["tscore"]:
-            best = move     #min value
-            best_temp_board = deepcopy(temp_board)
+        else:       #we iterate the function minimax by taking the best score the children returned
+            move["tscore"] = minimax(new_state,depth-1,-player)["tscore"] # = the best score from children
             
         
-    else :
-        if best["tscore"]< move["tscore"]:
-            best = move     #max value
-            best_temp_board = deepcopy(temp_board) 
-    """
-        
-        
+        # compare score with adjacent nodes
+        if player == computer:
+            if best["tscore"]< move["tscore"]:
+                best = move     #max value
+        else :
+            if best["tscore"]> move["tscore"]:
+                best = move     #min value
 
         
+        # if depth!=1:    #just printing to see all the moves
+        #     print("MOVE",depth," : ",move)
+        # if depth ==1:
+        #     print("move",depth," : ",move)
+        # print("state",depth," : ",new_state)
         
+           
+    # print("best",depth, ":", best)
+    return best #returns only the best score of the children
 
 
-# def minimax(state,depth,player):
-#     """
-#     AI function that choose the best move
-#     :param state: current state of the board
-#     :param depth: node index in the tree (0 <= depth <= 9),
-#     but never nine in this case (see iaturn() function) because it will choose
-#     a random coordinate if its the first in tic tac toe
-#     :param player: an human or a computer
-#     :return: a list with [the best row, best col, best score]
 
-#     """
-#     if player == computer:
-#         best = [-1, -1, -infinity]
-#     else:
-#         best = [-1, -1, +infinity]
 
-#     for cell in usable_cells(state):
-#         x,y = cell[0], cell[1]
-#         # print("x",x,"y",y)
-#         for proba in usable_cells(state):
-#             a,b = proba[0], proba[1]    #it takes all the possibilities it has now i have to put a score for each
-#             # print("a",a,"b",b)
-#             # score = minimax(state, depth -1, -player)
-#             """
 
-#             c'est compliqué!!!!! 
-#             de base on met un state 0 pour dire que c'est encore à jouer, +1 pour l'humain
-#             et -1 pour l'ia mais ici on joue avec des 1 et 0 et il faut regarder la dernière pièce
-#             puis il faut faire en sorte que l'ia comprenne ce qu'elle doit faire
-
-#             """
-#             # state[x][y] = 0
-#             # score[0],score[1] = x,y
-#         # print("best" , best)
-
-# minimax(board,15,computer)
-
-# possible_moves(board)
-# profondeur(board)
-minimax(board,choosing_depth,human)
-print(time.time()-t0)
-print(counter)
+best_move = minimax(board,choosing_depth,computer)
+print("best move to do :", best_move)
+print("time processing the possibilities :",time.time()-t0,"seconds")
+print("possibilities calculated :",counter)
 # # print(board)
 # set_move(1,1,2,2,player = computer)
 # # print(board)
