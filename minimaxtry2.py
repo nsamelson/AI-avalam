@@ -21,12 +21,11 @@ human = -1
 computer = +1
 temp_board = []
 board= [
-		[ [1],  [0], [1]],
-        [ [0],  [1], [0]],
-        [ [1],  [0], [1]]
+		[ [1],  [0]],
+        [ [0],  [1]]
 	]
 counter = 0
-choosing_depth=3
+choosing_depth=5
 points = 0
 
 
@@ -93,6 +92,7 @@ def possible_moves(state):
                 case.append({"from":cell, "to":movingto,"tscore": int})
                 
     # print(pprint.pformat(case))
+
     return case
 
 def set_move(x,y,a,b,state):
@@ -135,8 +135,44 @@ def eval(state):
                     points -= 5
                 elif col[-1]==0:
                     points +=5
+    # for i in range (len(state)):
+    #     for j in range(len(state[i])):
+    #         if 0<len(state[i][j])<5:
+    #             for a in range (j-1,j+2):
+    #                 for b in range(i-1,i+2):
+
+    #                     if state[i][j][-1] == 0 and len(state[a][b]==0) :
+    #                         if i==a and j ==b:
+    #                             pass
+    #                         else:
+    #                             points +=3 
+    # trying to check the cells all around the cell in question
+    # if isolated from the other color then points +=3 for computer and -=3 for human
+    #  but one main problem, I'm out of range when i and j are =0 and I check bellow or above the len of the col i have a and b inexistant
+    # I should put a max and min that a and b shouldn't pass
+                
     return points
+def choose_depth(state):
+    """
+    param: state, checking all the movements we can still do
+    and setting the max depth in the minimax
+    """
+    global choosing_depth
+    all_movements = 0
+    for x in state:
+        for y in x:
+            if len(y) !=0:
+                all_movements+=1
+    print(all_movements)
     
+    if all_movements <= choosing_depth:
+        choosing_depth = all_movements -1
+    print(choosing_depth)
+    
+
+
+
+
 def minimax(state,depth,player):
     """
     param: state, the board, that changes further when we iterate it in the loop
@@ -149,7 +185,8 @@ def minimax(state,depth,player):
     global counter
     global points
     
-
+    
+    
     if player == computer:
         best = {"from":list,"to":list,"tscore":-infinity}        # - inf because we want the algo to maximize for the computer
     else :
@@ -196,13 +233,13 @@ def minimax(state,depth,player):
         # print("state",depth," : ",new_state)
         
            
-    # print("best",depth, ":", best)
+    print("best",depth, ":", best)
     return best #returns only the best score of the children
 
 
 
 
-
+choose_depth(board)
 best_move = minimax(board,choosing_depth,computer)
 print("best move to do :", best_move)
 print("time processing the possibilities :",time.time()-t0,"seconds")
