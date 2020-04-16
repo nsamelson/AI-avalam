@@ -20,15 +20,22 @@ t0=time.time()
 human = -1
 computer = +1
 temp_board = []
-board= board= [
-		[ [1],  [0],  [1], [0]],
-		[ [0],  [1],  [0], [1]],
-		[ [1],  [0], [1], [0]],
-		[ [0],  [1], [0], [1]]
+
+board = [
+		[ [],  [],  [], [0], [1],  [],  [],  [],  []],
+		[ [],  [],  [], [1], [0], [1], [0], [1],  []],
+		[ [],  [], [1], [0], [1], [0], [1], [0], [1]],
+		[ [],  [], [0], [1], [0], [1], [0], [1], [0]],
+		[ [], [0], [1], [0],  [], [0], [1], [0],  []],
+		[[0], [1], [0], [1], [0], [1], [0],  [],  []],
+		[[1], [0], [1], [0], [1], [0], [1],  [],  []],
+		[ [], [1], [0], [1], [0], [1],  [],  [],  []],
+		[ [],  [],  [],  [], [1], [0],  [],  [],  []]
 	]
 counter = 0
-choosing_depth=5
+choosing_depth=3
 points = 0
+
 
 
 
@@ -94,7 +101,7 @@ def possible_moves(state):
                 case.append({"from":cell, "to":movingto,"tscore": int})
                 
     # print(pprint.pformat(case))
-
+    
     return case
 
 def set_move(x,y,a,b,state):
@@ -147,21 +154,22 @@ def choose_depth(state):
     and setting the max depth in the minimax
     """
     global choosing_depth
-    all_movements = 0
-    for x in state:
-        for y in x:
-            if len(y) !=0:
-                all_movements+=1
-    print(all_movements)
-    all_movements = all_movements-all_movements//5
-    print(all_movements)
-    if all_movements <= choosing_depth:
-        choosing_depth = all_movements 
-    print(choosing_depth)
+    if len(usable_cells(state)) ==0:
+        choosing_depth = 0
+        
     
-
-
-
+    elif 1<= len(usable_cells(state)) <= 3:
+        choosing_depth = 1
+    elif 3<=len(usable_cells(state)) <= 5:
+        
+        choosing_depth = 2
+    else :
+        
+        max_depth = len(possible_moves(state))//(len(usable_cells(state)))+1
+        print(len(possible_moves(state)), (len(usable_cells(state))))
+        if max_depth < choosing_depth:
+            choosing_depth = max_depth
+    
 
 def minimax(state,depth,alpha,beta,player):
     """
@@ -175,32 +183,28 @@ def minimax(state,depth,alpha,beta,player):
     global temp_board
     global counter
     global points
+    global choosing_depth
     
-    
-    
+  
     if player == computer:
         best = {"from":list,"to":list,"tscore":-infinity}        # - inf because we want the algo to maximize for the computer
     else :
         best = {"from":list,"to":list,"tscore":+infinity}
 
     if depth == 0 or game_over(state):          #when we're at the level under the leaves, leaves depth = 1
+
         return best
     
-    
-
     for move in possible_moves(state):      #the loop that iterates itself when going inside it's children
         x= move["from"][0]
         y = move["from"][1]
         a = move["to"][0]
         b = move["to"][1]
         
+        
         temp_board = deepcopy(state)    #deepcopying a new board with a first move
         new_state = (temp_board)        #and using this copy of board to re iterate itself and making a new board for each child
         set_move(x,y,a,b,new_state) 
-
-        if -0.01< (time.time()-t0) % 30 <0.01:
-            print("possibilities :",counter, "time :",(time.time()-t0)) 
-        
         
         if depth == 1: # if leaf
             counter +=1
@@ -208,8 +212,7 @@ def minimax(state,depth,alpha,beta,player):
 
         else:       #we iterate the function minimax by taking the best score the children returned
             move["tscore"] = minimax(new_state,depth-1,alpha,beta,-player)["tscore"] # = the best score from children
-                   
-            
+                
         
         # compare score with adjacent nodes
         if player == computer:  #maximize
@@ -228,23 +231,15 @@ def minimax(state,depth,alpha,beta,player):
             # print("break")
             break
         
-        
-        # if depth!=1:    #just printing to see all the moves
-        #     print("MOVE",depth," : ",move)
-        # if depth ==1:
-        #     print("move",depth," : ",move)
-        # print("state",depth," : ",new_state)
-        
-
-       
-    # print("best",depth, ":", best, "alpha :", alpha, "beta :", beta)
     return best #returns only the best score of the children
 
 
 
 
 choose_depth(board)
+print(choosing_depth)
 best_move = minimax(board,choosing_depth,-infinity,infinity,computer)
+print("after",choosing_depth)
 print("best move to do :", best_move)
 print("time processing the possibilities :",time.time()-t0,"seconds")
 print("possibilities calculated :",counter)
