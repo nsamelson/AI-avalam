@@ -40,68 +40,36 @@ points = 0
 
 
 def game_over(state):
-    if len(possible_moves(state))== 0:
+    if len(all_moves(state))== 0:
         return True
     else:
         return False
 
-def usable_cells(state):
-    cells = []
+
+    
+def all_moves(state):
+    case = []
+    cells = set()
+    # cells = []
     for x, row in enumerate(state):
         for y, cell in enumerate(row):
-            if 0<len(cell)<5:
-                cells.append([x,y])
-        
-    # print(cells)
-    return cells
-
-def valid_move(x,y,a,b,state):
-    """
-    it must move from one cell to one in row-1 to +1 and col -1 to +1
-    the sum of the two cells can't be >5
-
-    x y is row col from that i want to move to row a col b
-    
-    """
-    if [x,y] in usable_cells(state) and [a,b] in usable_cells(state):
-        if x-1 <= a <= x+1 and y-1 <= b <= y+1:
-            if a == x and b == y:
-                return False
-            else :
-                if len(state[a][b]) <= 5- len(state[x][y]):
-                    return True
-        else :
-            return False
-    else:
-        return False
-
-def possible_moves(state):
-    """
-    possible cells are for the cells where we can go
-    case is a list of dicts of all possible moves for each cell
-    score is for the move score, -1 if favorable for IA, +1 favorable for human and 0 coussi coussa
-    """
-    
-    poss_cells = []
-    case = []
-    
-    for a, row in enumerate(state):
-        for b, col in enumerate(row):
-            if 0<len(col)<5:
-                poss_cells.append([a,b])
-
-    for cell in usable_cells(state):     
-          
-        for  movingto in poss_cells:
+            if 0 < len(cell) < 5:
+                cells.add((x, y))
+                # cells.append([x,y])
+    for cell in cells:
+        for movingto in cells:
             x=cell[0]
             y=cell[1]
             a=movingto[0]
             b=movingto[1]
-            if valid_move(x,y,a,b,state):        
-                case.append({"from":cell, "to":movingto,"tscore": int})
-                
-    # print(pprint.pformat(case))
-    
+            # if [x,y] in cells and [a,b] in cells:
+            if (x,y) in cells and (a,b)in cells:
+                if x-1 <= a <= x+1 and y-1 <= b <= y+1:
+                    if a == x and b == y:
+                        pass
+                    else :
+                        if len(state[a][b]) <= 5- len(state[x][y]):
+                            case.append({"from":cell, "to":movingto,"tscore": int})
     return case
 
 def set_move(x,y,a,b,state):
@@ -112,15 +80,8 @@ def set_move(x,y,a,b,state):
     param a and b : row and col to
     """
     
-    
-    if valid_move(x,y,a,b,state):
-        
-        state[a][b].extend(state[x][y])
-        state[x][y].clear()
-        # print("state :",state)
-        return True
-    else:
-        return False
+    state[a][b].extend(state[x][y])
+    state[x][y].clear()
 
 def eval(state):
     """
@@ -153,22 +114,22 @@ def choose_depth(state):
     param: state, checking all the movements we can still do
     and setting the max depth in the minimax
     """
-    global choosing_depth
-    if len(usable_cells(state)) ==0:
-        choosing_depth = 0
+    # global choosing_depth
+    # if len(all_moves(state)) ==0:
+    #     choosing_depth = 0
         
     
-    elif 1<= len(usable_cells(state)) <= 3:
-        choosing_depth = 1
-    elif 3<=len(usable_cells(state)) <= 5:
+    # elif 1<= len(all_moves(state)) <= 3:
+    #     choosing_depth = 1
+    # elif 3<=len(all_moves(state)) <= 5:
         
-        choosing_depth = 2
-    else :
+    #     choosing_depth = 2
+    # else :
         
-        max_depth = len(possible_moves(state))//(len(usable_cells(state)))+1
-        print(len(possible_moves(state)), (len(usable_cells(state))))
-        if max_depth < choosing_depth:
-            choosing_depth = max_depth
+    #     max_depth = len(all_moves(state))//(len(all_moves(state)))+1
+    #     print(len(all_moves(state)), (len(all_moves(state))))
+    #     if max_depth < choosing_depth:
+    #         choosing_depth = max_depth
     
 
 def minimax(state,depth,alpha,beta,player):
@@ -195,7 +156,7 @@ def minimax(state,depth,alpha,beta,player):
 
         return best
     
-    for move in possible_moves(state):      #the loop that iterates itself when going inside it's children
+    for move in all_moves(state):      #the loop that iterates itself when going inside it's children
         x= move["from"][0]
         y = move["from"][1]
         a = move["to"][0]
