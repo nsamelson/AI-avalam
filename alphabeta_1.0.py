@@ -7,6 +7,7 @@ from math import inf as infinity
 import platform
 from os import system
 from copy import deepcopy
+import msgpack
 """
 all variables :
     t0 for the time processing
@@ -32,8 +33,9 @@ board = [
 		[ [], [1], [0], [1], [0], [1],  [],  [],  []],
 		[ [],  [],  [],  [], [1], [0],  [],  [],  []]
 	]
+# board = set(boaaaaard)
 counter = 0
-choosing_depth=3
+choosing_depth=2
 points = 0
 
 
@@ -48,6 +50,10 @@ def game_over(state):
 
     
 def all_moves(state):
+    """
+    param: state, it takes the actual board and will check all possible moves
+    return : case, returns a lsit of dicts with all the possible moves
+    """
     case = []
     cells = set()
     # cells = []
@@ -55,21 +61,14 @@ def all_moves(state):
         for y, cell in enumerate(row):
             if 0 < len(cell) < 5:
                 cells.add((x, y))
-                # cells.append([x,y])
-    for cell in cells:
-        for movingto in cells:
-            x=cell[0]
-            y=cell[1]
-            a=movingto[0]
-            b=movingto[1]
-            # if [x,y] in cells and [a,b] in cells:
-            if (x,y) in cells and (a,b)in cells:
-                if x-1 <= a <= x+1 and y-1 <= b <= y+1:
-                    if a == x and b == y:
-                        pass
-                    else :
-                        if len(state[a][b]) <= 5- len(state[x][y]):
-                            case.append({"from":cell, "to":movingto,"tscore": int})
+    for x,y in cells:
+        for a,b in cells:   
+            if x-1 <= a <= x+1 and y-1 <= b <= y+1:
+                if a == x and b == y:
+                    pass
+                else :
+                    if len(state[a][b]) <= 5- len(state[x][y]):
+                        case.append({"from":(x,y), "to":(a,b),"tscore": int})
     return case
 
 def set_move(x,y,a,b,state):
@@ -103,8 +102,14 @@ def eval(state):
             elif len(col) == 5:
                 if col[-1]==1:
                     points -= 5
+                    # for a in range(len(col)-1):
+                    #     if a == 0:
+                    #         points-=1
                 elif col[-1]==0:
                     points +=5
+                    # for a in range(len(col)-1):
+                    #     if a == 1:
+                    #         points+=1
     
     # I should put a max and min that a and b shouldn't pass
                 
@@ -146,7 +151,7 @@ def minimax(state,depth,alpha,beta,player):
     global points
     global choosing_depth
     
-  
+    
     if player == computer:
         best = {"from":list,"to":list,"tscore":-infinity}        # - inf because we want the algo to maximize for the computer
     else :
@@ -163,8 +168,10 @@ def minimax(state,depth,alpha,beta,player):
         b = move["to"][1]
         
         
-        temp_board = deepcopy(state)    #deepcopying a new board with a first move
-        new_state = (temp_board)        #and using this copy of board to re iterate itself and making a new board for each child
+        # temp_board = deepcopy(state)    #deepcopying a new board with a first move
+        temp_board = msgpack.packb(state)
+        new_state = msgpack.unpackb(temp_board)
+        # new_state = (temp_board)        #and using this copy of board to re iterate itself and making a new board for each child
         set_move(x,y,a,b,new_state) 
         
         if depth == 1: # if leaf
