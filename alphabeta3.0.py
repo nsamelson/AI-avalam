@@ -33,7 +33,7 @@ randomtext = ["C'est moi le plus fort dans ma forme","J'vais au casino en claque
             "Ici c'est nous les meilleurs","Au jour d'aujourd'hui","Ils voyent bien qu'on va tout péter",
             "Persone ne gagne ici","Moi j'ai peur de personne","J'me lève à 14h du matin","On fait du vélo sans les mains",
             "Maintenant tu fais moins le malin", "Nous on fait pas de calin","Pan Pan!","Y'en a qu'ont le mental et y'en a qu'on que l'emmental",
-            ]
+            "Jack septe pas le pardon","Jack septe les chèques","Jack célère"]
 def json_extract():
     global board
     global injson
