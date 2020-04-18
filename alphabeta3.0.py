@@ -28,7 +28,12 @@ board = []
 counter = 0
 choosing_depth=4
 points = 0
-randomtext = ["It's me, Mario","Here we goooo!","Represente le 92","C'est Jack Uzi","Tu vas moins faire le malin","On est les boss","Persone ne gagne ici","Ohhhh hell noooooo"]
+randomtext = ["C'est moi le plus fort dans ma forme","J'vais au casino en claquettes","02 880","C'est Jack, Jack Uzi",
+            "Tu vas moins faire le malin","T'es dans ta jalousie","Nous on joue pas de la flute","Les oreilles ont des murs",
+            "Ici c'est nous les meilleurs","Au jour d'aujourd'hui","Ils voyent bien qu'on va tout péter",
+            "Persone ne gagne ici","Moi j'ai peur de personne","J'me lève à 14h du matin","On fait du vélo sans les mains",
+            "Maintenant tu fais moins le malin", "Nous on fait pas de calin","Pan Pan!","Y'en a qu'ont le mental et y'en a qu'on que l'emmental",
+            ]
 def json_extract():
     global board
     global injson
@@ -135,6 +140,11 @@ def choose_depth(state):
     else:
         choosing_depth =2
 def ai(move,state):
+    """
+    param : move = best move from the minimax function
+    param : state = board
+    it will modify the json
+    """
     global injson
     x,y = move["from"]
     a,b = move["to"]
