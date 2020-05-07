@@ -1,7 +1,9 @@
 # AI Project AVALAM
 
 Samelson Nicolas - 17288  
-Roquero Pedro - 17010
+Roquero Pedro - 17010  
+
+Ai name : Jack Uzi
 
 ## Programming language used :
 
